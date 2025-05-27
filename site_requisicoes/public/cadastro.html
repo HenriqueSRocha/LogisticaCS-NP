@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="index.html">Início</a></li>
+        <li class="login-link"><a href="login.html">Login</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main class="form-container">
+    <h1>Criar Conta</h1>
+    <form id="formCadastro">
+      <label>Nome: <input type="text" id="nome" required></label>
+      <label>Email: <input type="email" id="email" required></label>
+      <label>Senha: <input type="password" id="senha" minlength="6" required></label>
+      <label>Confirmar Senha: <input type="password" id="confirmarSenha" required></label>
+      <div class="form-actions">
+        <button type="submit" class="button">Cadastrar</button>
+      </div>
+    </form>
+  </main>
+<script type="module" src="script.js"></script>
+</body>
+</html>

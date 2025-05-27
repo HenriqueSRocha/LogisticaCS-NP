@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova Requisição</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="index.html">Início</a></li>
+        <li class="login-link"><a href="login.html" id="loginButton">Login</a></li>
+        <li class="user-info" style="display: none;">
+          <span id="userName"></span>
+          <a href="#" id="logoutButton">(Sair)</a>
+        </li>
+      </ul>
+    </nav>
+  </header>
+  <main class="form-container">
+    <h1>Nova Requisição</h1>
+    <form id="formRequisicao">
+      <label>Requisitante: <input type="text" name="requisitante" required></label>
+      <label>Data Final: <input type="date" name="dataFinal" required></label>
+      <label>Tipo:
+        <select name="tipo" required>
+          <option value="">Selecione...</option>
+          <option>Entrega</option>
+          <option>Mov. Estoque</option>
+          <option>Conferência</option>
+          <option>Outro</option>
+        </select>
+      </label>
+      <label>Responsável: <input type="text" name="responsavel" required></label>
+      <label>Situação:
+        <select name="situacao" required>
+          <option>Pendente</option>
+          <option>Concluído</option>
+          <option>Cancelado</option>
+        </select>
+      </label>
+      <label>Observação: <textarea name="observacao" maxlength="500"></textarea></label>
+      <div class="form-actions">
+        <button type="submit" class="button">Criar Requisição</button>
+      </div>
+    </form>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>

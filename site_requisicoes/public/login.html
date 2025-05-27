@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link rel="stylesheet" href="style.css">
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="index.html">Início</a></li>
+        <li class="login-link"><a href="login.html" id="loginButton">Login</a></li>
+        <li class="user-info" style="display: none;">
+          <span id="userName"></span>
+          <a href="#" id="logoutButton">(Sair)</a>
+        </li>
+      </ul>
+    </nav>
+  </header>
+  <main class="form-container">
+    <h1>Login</h1>
+    
+    <div id="loginMessage" class="message" style="display: none;"></div>
+    
+    <form id="formLogin">
+      <label>Email: <input type="email" id="loginEmail" required></label>
+      <label>Senha: <input type="password" id="loginPassword" required></label>
+      <div class="form-actions">
+        <button type="submit" class="button">Entrar</button>
+      </div>
+    </form>
+    <div class="register-link">
+      <p>Não tem uma conta? <a href="cadastro.html">Cadastre-se</a></p>
+    </div>
+  </main>
+  
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCgmqJpEFvu3PHeDixduSi91gUXl5MWsWE",
+      authDomain: "logisticacs-np.firebaseapp.com",
+      projectId: "logisticacs-np",
+      storageBucket: "logisticacs-np.appspot.com",
+      messagingSenderId: "576784368514",
+      appId: "1:576784368514:web:849708ffedb2f32e62859b"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    function showLoginMessage(type, text) {
+      const msg = document.getElementById('loginMessage');
+      msg.textContent = text;
+      msg.className = `message ${type}`;
+      msg.style.display = 'block';
+      
+      setTimeout(() => {
+        msg.style.display = 'none';
+      }, 5000);
+    }
+
+    document.getElementById('formLogin').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        
+        showLoginMessage('success', 'Login realizado com sucesso!');
+        
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1000);
+        
+      } catch (error) {
+        let errorMessage;
+        
+        switch(error.code) {
+          case 'auth/user-not-found':
+            errorMessage = 'Usuário não encontrado.';
+            break;
+          case 'auth/wrong-password':
+            errorMessage = 'Senha incorreta.';
+            break;
+          case 'auth/invalid-email':
+            errorMessage = 'Email inválido.';
+            break;
+          default:
+            errorMessage = 'Erro ao fazer login. Tente novamente.';
+        }
+        
+        showLoginMessage('error', errorMessage);
+        console.error("Erro de login:", error);
+      }
+    });
+
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        window.location.href = 'index.html';
+      }
+    });
+  </script>
+</body>
+</html>
