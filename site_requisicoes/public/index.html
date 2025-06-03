@@ -1,31 +1,86 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Requisições</title>
 
-    <!-- update the version number as needed -->
-    <script defer src="/__/firebase/11.8.1/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
-    <script defer src="/__/firebase/11.8.1/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-database-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-functions-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-messaging-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-storage-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-analytics-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-remote-config-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-performance-compat.js"></script>
-    <!-- 
-      initialize the SDK after all desired features are loaded, set useEmulator to false
-      to avoid connecting the SDK to running emulators.
-    -->
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
-    <link rel="stylesheet" href="style.css">
-
-  </head>
-  <body>
+  <!-- Firebase SDK -->
+  <script defer src="/__/firebase/11.8.1/firebase-app-compat.js"></script>
+  <script defer src="/__/firebase/11.8.1/firebase-auth-compat.js"></script>
+  <script defer src="/__/firebase/11.8.1/firebase-firestore-compat.js"></script>
+  <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+  
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Estilos para os cards de requisição */
+    .card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 1.5rem;
+      padding: 1.5rem;
+      position: relative;
+    }
+    
+    .card-main {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .card-observacao {
+      grid-column: span 3;
+      padding-top: 1rem;
+      margin-top: 1rem;
+      border-top: 1px dashed #e0e0e0;
+    }
+    
+    .card-situacao {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+    
+    .card-situacao.pendente {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    
+    .card-situacao.concluído {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    
+    .card-situacao.cancelado {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    
+    .message {
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+      text-align: center;
+    }
+    
+    .message.info {
+      background-color: #e7f5ff;
+      color: #1864ab;
+    }
+    
+    .message.error {
+      background-color: #fff3bf;
+      color: #e67700;
+    }
+  </style>
+</head>
+<body>
   <header>
     <nav>
       <ul>
@@ -38,15 +93,114 @@
       </ul>
     </nav>
   </header>
+  
   <main>
     <div class="header-container">
       <h1>Requisições</h1>
-      <a href="nova.html" class="button">Nova Requisição</a>
+      <a href="nova.html" class="button" id="novaRequisicaoBtn">Nova Requisição</a>
     </div>
     <div id="requisicoes"></div>
   </main>
-  <script src="script.js"></script>
-</body>
-</html>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Inicialização do Firebase
+      const auth = firebase.auth();
+      const db = firebase.firestore();
+      
+      // Elementos da UI
+      const loginButton = document.getElementById('loginButton');
+      const userInfo = document.querySelector('.user-info');
+      const userName = document.getElementById('userName');
+      const logoutButton = document.getElementById('logoutButton');
+      const novaRequisicaoBtn = document.getElementById('novaRequisicaoBtn');
+      const requisicoesContainer = document.getElementById('requisicoes');
+      
+      // Formata data para exibição
+      function formatDate(date) {
+        if (!date) return '-';
+        try {
+          if (date.toDate) date = date.toDate();
+          return date.toLocaleDateString('pt-BR');
+        } catch (e) {
+          return date;
+        }
+      }
+      
+      // Monitora estado de autenticação
+      auth.onAuthStateChanged(function(user) {
+        if (user) {
+          // Usuário logado
+          loginButton.style.display = 'none';
+          userInfo.style.display = 'block';
+          novaRequisicaoBtn.style.display = 'inline-block';
+          userName.textContent = user.email;
+          
+          // Configura logout
+          logoutButton.onclick = function(e) {
+            e.preventDefault();
+            auth.signOut().then(function() {
+              window.location.href = 'index.html';
+            });
+          };
+          
+          // Carrega requisições
+          carregarRequisicoes();
+        } else {
+          // Usuário não logado
+          loginButton.style.display = 'inline-block';
+          userInfo.style.display = 'none';
+          novaRequisicaoBtn.style.display = 'none';
+          requisicoesContainer.innerHTML = '<p class="message info">Faça login para visualizar as requisições</p>';
+        }
+      });
+      
+      // Carrega requisições do Firestore
+      function carregarRequisicoes() {
+        requisicoesContainer.innerHTML = '<p class="message info">Carregando requisições...</p>';
+        
+        db.collection("requisicoes")
+          .orderBy("dataCriacao", "desc")
+          .get()
+          .then(function(querySnapshot) {
+            requisicoesContainer.innerHTML = '';
+            
+            if (querySnapshot.empty) {
+              requisicoesContainer.innerHTML = '<p class="message info">Nenhuma requisição encontrada</p>';
+              return;
+            }
+            
+            querySnapshot.forEach(function(doc) {
+              const req = doc.data();
+              const card = document.createElement('div');
+              card.className = 'card';
+              
+              card.innerHTML = `
+                <div class="card-main">
+                  <div class="card-item"><strong>ID:</strong> ${doc.id.substring(0, 8)}</div>
+                  <div class="card-item"><strong>Data:</strong> ${formatDate(req.dataCriacao)}</div>
+                  <div class="card-item"><strong>Tipo:</strong> ${req.tipo || '-'}</div>
+                  <div class="card-item"><strong>Solicitante:</strong> ${req.requisitante || '-'}</div>
+                  <div class="card-item"><strong>Data Final:</strong> ${formatDate(req.dataFinal) || '-'}</div>
+                  <div class="card-item"><strong>Responsável:</strong> ${req.responsavel || '-'}</div>
+                  <div class="card-observacao">
+                    <strong>Observação:</strong> ${req.observacao || '-'}
+                  </div>
+                  <div class="card-situacao ${(req.situacao || 'pendente').toLowerCase()}">
+                    ${req.situacao || 'Pendente'}
+                  </div>
+                </div>
+              `;
+              
+              requisicoesContainer.appendChild(card);
+            });
+          })
+          .catch(function(error) {
+            console.error("Erro ao carregar requisições:", error);
+            requisicoesContainer.innerHTML = '<p class="message error">Erro ao carregar requisições</p>';
+          });
+      }
+    });
+  </script>
 </body>
 </html>

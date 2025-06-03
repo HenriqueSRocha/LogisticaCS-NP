@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nova Requisição</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Adicione os SDKs do Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <header>
@@ -22,10 +26,10 @@
   <main class="form-container">
     <h1>Nova Requisição</h1>
     <form id="formRequisicao">
-      <label>Requisitante: <input type="text" name="requisitante" required></label>
-      <label>Data Final: <input type="date" name="dataFinal" required></label>
+      <label>Requisitante: <input type="text" id="requisitante" required></label>
+      <label>Data Final: <input type="date" id="dataFinal" required></label>
       <label>Tipo:
-        <select name="tipo" required>
+        <select id="tipo" required>
           <option value="">Selecione...</option>
           <option>Entrega</option>
           <option>Mov. Estoque</option>
@@ -33,20 +37,106 @@
           <option>Outro</option>
         </select>
       </label>
-      <label>Responsável: <input type="text" name="responsavel" required></label>
+      <label>Responsável: <input type="text" id="responsavel" required></label>
       <label>Situação:
-        <select name="situacao" required>
+        <select id="situacao" required>
           <option>Pendente</option>
           <option>Concluído</option>
           <option>Cancelado</option>
         </select>
       </label>
-      <label>Observação: <textarea name="observacao" maxlength="500"></textarea></label>
+      <label>Observação: <textarea id="observacao" maxlength="500"></textarea></label>
       <div class="form-actions">
         <button type="submit" class="button">Criar Requisição</button>
       </div>
     </form>
+    <div id="message" class="message" style="display: none;"></div>
   </main>
-  <script src="script.js"></script>
+
+  <script>
+    // Configuração do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCgmqJpEFvu3PHeDixduSi91gUXl5MWsWE",
+      authDomain: "logisticacs-np.firebaseapp.com",
+      projectId: "logisticacs-np",
+      storageBucket: "logisticacs-np.appspot.com",
+      messagingSenderId: "576784368514",
+      appId: "1:576784368514:web:849708ffedb2f32e62859b"
+    };
+
+    // Inicializa o Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Função para mostrar mensagens
+    function showMessage(type, text) {
+      const msg = document.getElementById('message');
+      msg.textContent = text;
+      msg.className = `message ${type}`;
+      msg.style.display = 'block';
+      setTimeout(() => msg.style.display = 'none', 5000);
+    }
+
+    // Controle de login/logout
+    auth.onAuthStateChanged(user => {
+      const loginLink = document.querySelector('.login-link');
+      const userInfo = document.querySelector('.user-info');
+      
+      if (user) {
+        // Usuário logado
+        loginLink.style.display = 'none';
+        userInfo.style.display = 'block';
+        document.getElementById('userName').textContent = user.email;
+        
+        // Configura logout
+        document.getElementById('logoutButton').onclick = (e) => {
+          e.preventDefault();
+          auth.signOut().then(() => {
+            window.location.href = 'index.html';
+          });
+        };
+      } else {
+        // Usuário não logado
+        loginLink.style.display = 'block';
+        userInfo.style.display = 'none';
+        showMessage('error', 'Você precisa estar logado para criar requisições!');
+        setTimeout(() => window.location.href = 'login.html', 2000);
+      }
+    });
+
+    // Envio do formulário
+    document.getElementById('formRequisicao').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const user = auth.currentUser;
+      if (!user) {
+        showMessage('error', 'Você precisa estar logado!');
+        return;
+      }
+
+      try {
+        // Cria a nova requisição
+        await db.collection('requisicoes').add({
+          requisitante: document.getElementById('requisitante').value,
+          dataFinal: document.getElementById('dataFinal').value,
+          tipo: document.getElementById('tipo').value,
+          responsavel: document.getElementById('responsavel').value,
+          situacao: document.getElementById('situacao').value,
+          observacao: document.getElementById('observacao').value,
+          criadoPor: user.uid,
+          dataCriacao: firebase.firestore.FieldValue.serverTimestamp(),
+          status: 'ativo'
+        });
+
+        showMessage('success', 'Requisição criada com sucesso!');
+        document.getElementById('formRequisicao').reset();
+        setTimeout(() => window.location.href = 'index.html', 2000);
+      } catch (error) {
+        console.error("Erro ao criar requisição:", error);
+        showMessage('error', 'Erro ao salvar requisição!');
+      }
+    });
+  </script>
 </body>
 </html>

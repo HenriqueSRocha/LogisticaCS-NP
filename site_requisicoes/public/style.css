@@ -228,3 +228,67 @@ form textarea {
   background-color: #f8d7da;
   color: #721c24;
 }
+  .card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    position: relative;
+  }
+  
+  .card-main {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .card-observacao {
+    grid-column: span 3;
+    padding-top: 1rem;
+    margin-top: 1rem;
+    border-top: 1px dashed #e0e0e0;
+  }
+  
+  .card-situacao {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+  
+  .card-situacao.pendente {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  
+  .card-situacao.concluído {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .card-situacao.cancelado {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+  
+  .message {
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 4px;
+    text-align: center;
+  }
+  
+  .message.info {
+    background-color: #e7f5ff;
+    color: #1864ab;
+  }
+  
+  .message.error {
+    background-color: #fff3bf;
+    color: #e67700;
+  }
