@@ -38,13 +38,6 @@
         </select>
       </label>
       <label>Responsável: <input type="text" id="responsavel" required></label>
-      <label>Situação:
-        <select id="situacao" required>
-          <option>Pendente</option>
-          <option>Concluído</option>
-          <option>Cancelado</option>
-        </select>
-      </label>
       <label>Observação: <textarea id="observacao" maxlength="500"></textarea></label>
       <div class="form-actions">
         <button type="submit" class="button">Criar Requisição</button>
@@ -69,7 +62,6 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Função para mostrar mensagens
     function showMessage(type, text) {
       const msg = document.getElementById('message');
       msg.textContent = text;
@@ -78,18 +70,15 @@
       setTimeout(() => msg.style.display = 'none', 5000);
     }
 
-    // Controle de login/logout
     auth.onAuthStateChanged(user => {
       const loginLink = document.querySelector('.login-link');
       const userInfo = document.querySelector('.user-info');
       
       if (user) {
-        // Usuário logado
         loginLink.style.display = 'none';
         userInfo.style.display = 'block';
         document.getElementById('userName').textContent = user.email;
         
-        // Configura logout
         document.getElementById('logoutButton').onclick = (e) => {
           e.preventDefault();
           auth.signOut().then(() => {
@@ -97,7 +86,6 @@
           });
         };
       } else {
-        // Usuário não logado
         loginLink.style.display = 'block';
         userInfo.style.display = 'none';
         showMessage('error', 'Você precisa estar logado para criar requisições!');
@@ -105,7 +93,6 @@
       }
     });
 
-    // Envio do formulário
     document.getElementById('formRequisicao').addEventListener('submit', async (e) => {
       e.preventDefault();
       
@@ -116,13 +103,12 @@
       }
 
       try {
-        // Cria a nova requisição
         await db.collection('requisicoes').add({
           requisitante: document.getElementById('requisitante').value,
           dataFinal: document.getElementById('dataFinal').value,
           tipo: document.getElementById('tipo').value,
           responsavel: document.getElementById('responsavel').value,
-          situacao: document.getElementById('situacao').value,
+          situacao: "Pendente",
           observacao: document.getElementById('observacao').value,
           criadoPor: user.uid,
           dataCriacao: firebase.firestore.FieldValue.serverTimestamp(),
